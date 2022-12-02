@@ -1,4 +1,5 @@
 pub(crate) mod msr;
+pub(crate) mod regs;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "vmx")] {
@@ -14,4 +15,4 @@ cfg_if::cfg_if! {
     }
 }
 
-pub use vender::{has_hardware_support, ArchPerCpuState};
+pub use vender::{has_hardware_support, ArchPerCpuState, RvmVcpu};
