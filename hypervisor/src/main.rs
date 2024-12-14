@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
-#![feature(asm_const)]
-#![feature(panic_info_message, alloc_error_handler)]
+#![feature(alloc_error_handler)]
 
 #[macro_use]
 extern crate log;
@@ -23,17 +22,20 @@ use core::sync::atomic::{AtomicBool, Ordering};
 static INIT_OK: AtomicBool = AtomicBool::new(false);
 
 const LOGO: &str = r"
+______________   _________   
+\______   \   \ /   /     \  
+ |       _/\   Y   /  \ /  \ 
+ |    |   \ \     /    Y    \
+ |____|_  /  \___/\____|__  /
+        \/                \/ 
+Supplied for AMD SVM instruction set.
 
-    RRRRRR  VV     VV MM    MM
-    RR   RR VV     VV MMM  MMM
-    RRRRRR   VV   VV  MM MM MM
-    RR  RR    VV VV   MM    MM
-    RR   RR    VVV    MM    MM
-     ___    ____    ___    ___
-    |__ \  / __ \  |__ \  |__ \
-    __/ / / / / /  __/ /  __/ /
-   / __/ / /_/ /  / __/  / __/
-  /____/ \____/  /____/ /____/
+_______________   ________    _____  
+\_____  \   _  \  \_____  \  /  |  | 
+ /  ____/  /_\  \  /  ____/ /   |  |_
+/       \  \_/   \/       \/    ^   /
+\_______ \_____  /\_______ \____   | 
+        \/     \/         \/    |__| 
 ";
 
 fn clear_bss() {

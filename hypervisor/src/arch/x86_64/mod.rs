@@ -8,7 +8,6 @@ pub mod instructions;
 pub mod timer;
 pub mod uart16550;
 
-pub use trap::handle_irq;
 pub use uart16550 as uart;
 
 pub fn init_early() {

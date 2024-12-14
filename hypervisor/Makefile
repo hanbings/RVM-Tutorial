@@ -25,7 +25,7 @@ GDB := gdb-multiarch
 qemu := qemu-system-$(ARCH)
 qemu_args := -nographic -m 128M
 
-qemu_args += -cpu host,+x2apic,+vmx -accel kvm
+qemu_args += -cpu host,+x2apic,+svm -accel kvm
 
 ifeq ($(ARCH), x86_64)
   qemu_args += \
