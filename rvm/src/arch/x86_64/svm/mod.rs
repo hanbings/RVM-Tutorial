@@ -1,13 +1,13 @@
 use core::marker::PhantomData;
 
 use raw_cpuid::CpuId;
-use structs::VmcbControlArea;
+use vmcb::Vmcb;
 use x86::vmx::VmFail;
-use crate::mm::PhysFrame;
 
+use crate::mm::PhysFrame;
 use crate::{HostPhysAddr, RvmError, RvmHal, RvmResult};
 
-pub mod structs;
+pub mod vmcb;
 
 pub use self::SvmPreCpuState as ArchPerCpuState;
 
@@ -17,7 +17,7 @@ pub fn has_hardware_support() -> bool {
 }
 
 pub struct SvmPreCpuState<H: RvmHal> {
-    vmcb: VmcbControlArea,
+    vmcb: Vmcb,
     hal: PhantomData<H>,
 }
 
@@ -26,7 +26,7 @@ impl<H: RvmHal> SvmPreCpuState<H> {
         let frame: PhysFrame<H> = PhysFrame::alloc_zero().unwrap();
         unsafe {
             let ptr = frame.as_mut_ptr() as *mut u8;
-            let vmcb_ptr = ptr as *mut VmcbControlArea;
+            let vmcb_ptr = ptr as *mut Vmcb;
             
             Self {
                 vmcb: *vmcb_ptr,
@@ -35,16 +35,16 @@ impl<H: RvmHal> SvmPreCpuState<H> {
         }
     }
 
-    pub fn vmcb(&self) -> &VmcbControlArea {
+    pub fn vmcb(&self) -> &Vmcb {
         &self.vmcb
     }
 
-    pub fn vmcb_mut(&mut self) -> &mut VmcbControlArea {
+    pub fn vmcb_mut(&mut self) -> &mut Vmcb {
         &mut self.vmcb
     }
 
     pub fn phys_addr(&self) -> HostPhysAddr {
-        self.vmcb() as *const VmcbControlArea as HostPhysAddr
+        self.vmcb() as *const Vmcb as HostPhysAddr
     }
 
     pub fn is_enabled(&self) -> bool {
