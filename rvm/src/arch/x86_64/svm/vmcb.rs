@@ -27,12 +27,12 @@ pub struct VmcbControlArea {
 
     // reserved 0x18 - 0x3b
     reserved_0x18_0x3b: [u8; 0x3b - 0x18],
-    
+
     // PAUSE Filter Threshold
     pause_filter_threshold: u16,
     // PAUSE Filter Count
     pause_filter_count: u16,
-    
+
     // Physical base address, bits 11:0 are ignored
     // Physical base address of IOPM
     iopm_base_pa: u64,
@@ -119,7 +119,7 @@ pub struct VmcbInterceptVector3 {
     intercept_vintr: u1,
     // intercept CR0 writes that change bits other than CR0.TS or CR0.MP
     intercept_cr0_writes: u1,
-    
+
     // descriptor tables intercept
     intercept_idtr_reads: u1,
     intercept_gdtr_reads: u1,
@@ -129,7 +129,7 @@ pub struct VmcbInterceptVector3 {
     intercept_gdtr_writes: u1,
     intercept_ldtr_writes: u1,
     intercept_tr_writes: u1,
-    
+
     // intercept instruction
     intercept_rdtsc: u1,
     intercept_rdpmc: u1,
@@ -203,10 +203,10 @@ pub struct VmcbInterceptVector5 {
     intercept_illegal_invlpgb: u1,
     intercept_invpcid: u1,
     intercept_mcommit: u1,
-    // Intercept TLB invalidation. Presence of this bit 
+    // Intercept TLB invalidation. Presence of this bit
     // is indicated by CPUID Fn8000_000A, EDX[24] = 1
     intercept_tlbsync: u1,
-    reserve: u27
+    reserve: u27,
 }
 
 #[repr(C)]
@@ -258,7 +258,7 @@ pub struct VmInterruptControlFlags {
 
     // V_IGN_TPR (bit 20)
     // Nonzero if the current virtual interrupt ignores the (virtual) TPR
-    v_ign_tpr: u1,  
+    v_ign_tpr: u1,
 
     // Reserved bits 21:23
     // Reserved (SBZ)
@@ -266,35 +266,35 @@ pub struct VmInterruptControlFlags {
 
     // V_INTR_MASKING (bit 24)
     // Virtualize masking of INTR interrupts
-    v_intr_masking: u1,  
+    v_intr_masking: u1,
 
     // AMD Virtual GIF enabled (bit 25)
     // Nonzero if AMD Virtual GIF is enabled for this guest
-    v_gif_enabled: u1,  
+    v_gif_enabled: u1,
 
     // V_NMI_ENABLE (bit 26)
     // Nonzero if NMI virtualization is enabled
-    v_nmi_enable: u1,  
+    v_nmi_enable: u1,
 
     // Reserved bits 27:29
     // Reserved (SBZ)
-    reserved_nmi_enable: u3,  
+    reserved_nmi_enable: u3,
 
     // x2AVIC Enable (bit 30)
     // Nonzero if x2AVIC is enabled
-    x2avic_enable: u1,  
+    x2avic_enable: u1,
 
     // AVIC Enable (bit 31)
     // Nonzero if AVIC is enabled
-    avic_enable: u1,  
+    avic_enable: u1,
 
     // V_INTR_VECTOR (bits 39:32)
     // 8-bit vector to use for this interrupt
-    v_intr_vector: u8,  
+    v_intr_vector: u8,
 
     // Reserved bits 40:63
     // Reserved (SBZ)
-    reserved: u25,  
+    reserved: u25,
 }
 
 #[repr(C)]
@@ -342,10 +342,10 @@ pub struct NestedPagingFlags {
     enable_read_only_guest_page_tables: u1,
 
     /// Enable INVLPGB/TLBSYNC.
-    /// 
+    ///
     /// 0 - INVLPGB and TLBSYNC will result in #UD.
     /// 1 - INVLPGB and TLBSYNC can be executed in guest.
-    /// 
+    ///
     /// Presence of this bit is indicated by CPUID bit 8000_000A, EDX[24] = 1.
     /// When in SEV-ES guest or this bit is not present, INVLPGB/TLBSYNC is always enabled in guest
     enable_inv_lpgb_tlbsync: u1,
@@ -356,20 +356,20 @@ pub struct NestedPagingFlags {
 
 #[repr(C)]
 #[bitsize(64)]
-#[derive(Clone, Copy,PartialEq,  FromBits)]
+#[derive(Clone, Copy, PartialEq, FromBits)]
 pub struct AvicControlFlags {
     /// Reserved (SBZ)
     /// Bits 63:52 are reserved (SBZ)
     reserved: u12,
 
     /// AVIC APIC_BAR
-    /// 
+    ///
     /// Address of the APIC base for the AVIC (AMD Virtual APIC).
     /// The APIC_BAR is used by AVIC to access the APIC and other
     /// related functionality within the virtualized environment.
-    /// 
+    ///
     /// Bits 51:0 are for AVIC APIC_BAR
-    apic_bar: u52,  
+    apic_bar: u52,
 }
 
 #[repr(C)]
@@ -377,18 +377,18 @@ pub struct AvicControlFlags {
 #[derive(Clone, Copy, PartialEq, FromBits)]
 pub struct LbrVirtualizationFlags {
     /// LBR Virtualization Enable
-    /// 
+    ///
     /// 0 — Do nothing.
     /// 1 — Enable LBR virtualization hardware acceleration.
     lbr_virtualization_enable: u1,
 
     /// Virtualized VMSAVE/VMLOAD Enable
-    /// 
+    ///
     /// Enables virtualized versions of VMSAVE and VMLOAD instructions.
     virtualized_vmsave_vmload_enable: u1,
 
     /// Virtualized Instruction-Based Sampling Enable
-    /// 
+    ///
     /// Enables virtualized instruction-based sampling.
     /// See "Instruction-Based Sampling Virtualization" for details.
     virtualized_instruction_sampling_enable: u1,
@@ -403,7 +403,7 @@ pub struct LbrVirtualizationFlags {
 #[derive(Clone, Copy, PartialEq, FromBits)]
 pub struct VmcbCleanBits {
     /// VMCB Clean Bits
-    /// 
+    ///
     /// Represents the clean bits in the VMCB.
     /// These bits are used to track the state of the VMCB, indicating which fields
     /// have been modified or need to be written back to memory.
@@ -412,7 +412,7 @@ pub struct VmcbCleanBits {
 
     /// Reserved (SBZ)
     /// Bits 63:32 are reserved (SBZ)
-    reserved: u32,  
+    reserved: u32,
 }
 
 #[repr(C)]
@@ -420,7 +420,7 @@ pub struct VmcbCleanBits {
 #[derive(Clone, Copy, PartialEq, FromBits)]
 pub struct InstructionFetchCount {
     // Number of bytes fetched
-    number_of_bytes_fetched: u8,  
+    number_of_bytes_fetched: u8,
     // Guest instruction bytes
     guest_instruction_bytes: u120,
 }
@@ -483,7 +483,7 @@ pub struct VmcbStateSaveArea {
     tr: VmcbRegister,
     // reserved 0xa0 - 0xca
     reserved_0xa0_0xca: [u8; 0xca - 0xa0],
-    // If the guest is real-mode then the CPL is forced to 0; 
+    // If the guest is real-mode then the CPL is forced to 0;
     // if the guest is virtual-mode then the CPL is forced to 3.
     cpl: u8,
     // reserved 0xcc
@@ -502,7 +502,7 @@ pub struct VmcbStateSaveArea {
     // reserved 0x180 - 0x1d7
     reserved_0x180_0x1d7: [u8; 0x1d7 - 0x180],
     rsp: u64,
-    s_cet: u64, 
+    s_cet: u64,
     ssp: u64,
     isst_addr: u64,
     rax: u64,
@@ -530,15 +530,15 @@ pub struct VmcbStateSaveArea {
     reserved_0x2e8_0x66f: [u8; 0x66f - 0x2e8],
     lbr_stack: [u8; 256],
     lbr_select: u64,
-    ibs_fetch_ctl: u64,  
-    ibs_fetch_linaddr: u64,  
-    ibs_op_ctl: u64,  
-    ibs_op_rip: u64,  
-    ibs_op_data: u64,  
-    ibs_op_data2: u64,  
-    ibs_op_data3: u64,  
-    ibs_dc_linaddr: u64,  
-    bp_ibstgt_rip: u64,  
+    ibs_fetch_ctl: u64,
+    ibs_fetch_linaddr: u64,
+    ibs_op_ctl: u64,
+    ibs_op_rip: u64,
+    ibs_op_data: u64,
+    ibs_op_data2: u64,
+    ibs_op_data3: u64,
+    ibs_dc_linaddr: u64,
+    bp_ibstgt_rip: u64,
     ic_ibst_extd_ctl: u64,
 }
 
