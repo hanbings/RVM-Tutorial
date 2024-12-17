@@ -89,8 +89,27 @@ pub struct VmcbControlArea {
     vmgexit_rax: u64,
     vmgrexit_cpl: u8,
 
-    // reserved 0x120 - 0x3df 0x3e0 - 0x3ef
-    reserved_0x120_0x3df: [u8; 0x3df - 0x120],
+    // bus lock threshold counter
+    bus_lock_threshold_counter: u16,
+
+    // reserved 0x133 - 0x128
+    reserved_0x138_0x128: [u8; 0x133 - 0x128],
+
+    // update irr ??? len = 0
+    update_irr: [u8; 0x138 - 0x133],
+
+    // SEV
+    sev_features_mask: SevFeaturesMask,
+    guest_sev_features: GuestSevFeatures,
+
+    // reserved 0x148 - 0x150
+    reserved_0x148_0x150: [u8; 0x150 - 0x148],
+
+    // reserved 0x170 - 0x150
+    requested_irr: [u8; 0x170 - 0x150],
+
+    // reserved 0x3df - 0x170
+    reserved_0x120_0x3df: [u8; 0x3df - 0x170],
 
     // reserved for host usage
     reserved_0x3e0_0x3ff: [u8; 0x3ff - 0x3e0],
@@ -206,7 +225,9 @@ pub struct VmcbInterceptVector5 {
     // Intercept TLB invalidation. Presence of this bit
     // is indicated by CPUID Fn8000_000A, EDX[24] = 1
     intercept_tlbsync: u1,
-    reserve: u27,
+    // Intercept HLT instruction if a virtual interrupt is not pending
+    intercept_hlt: u1,
+    reserve: u26,
 }
 
 #[repr(C)]
@@ -461,6 +482,23 @@ pub struct AvicPhysicalTablePointer {
 #[repr(C)]
 #[bitsize(64)]
 #[derive(Clone, Copy, PartialEq, FromBits)]
+pub struct SevFeaturesMask {
+    allowed_sev_features_mask: u62,
+    reserved: u1,
+    allowed_sev_features_en: u1,
+}
+
+#[repr(C)]
+#[bitsize(64)]
+#[derive(Clone, Copy, PartialEq, FromBits)]
+pub struct GuestSevFeatures {
+    guest_sev_features: u62,
+    reserved: u2,
+}
+
+#[repr(C)]
+#[bitsize(64)]
+#[derive(Clone, Copy, PartialEq, FromBits)]
 pub struct VmcbStateSaveAreaPointer {
     vmsa_pointer_reserved_1: u12,
     vmsa_pointer: u40,
@@ -487,10 +525,23 @@ pub struct VmcbStateSaveArea {
     // if the guest is virtual-mode then the CPL is forced to 3.
     cpl: u8,
     // reserved 0xcc
-    reserved_0xcc: u8,
+    reserved_0xcc: u32,
     efer: u64,
     // reserved 0xd8 - 0x147
-    reserved_0xd8_0x147: [u8; 0x147 - 0xd8],
+    reserved_0xd8_0xdf: [u8; 0xdf - 0xd8],
+    // perf control
+    perf_ctl0: u64,
+    perf_ctr0: u64,
+    perf_ctl1: u64,
+    perf_ctr1: u64,
+    perf_ctl2: u64,
+    perf_ctr2: u64,
+    perf_ctl3: u64,
+    perf_ctr3: u64,
+    perf_ctl4: u64,
+    perf_ctr4: u64,
+    perf_ctl5: u64,
+    perf_ctr5: u64,
     // control registers and data registers
     cr4: u64,
     cr3: u64,
@@ -499,8 +550,13 @@ pub struct VmcbStateSaveArea {
     dr6: u64,
     rfalgs: u64,
     rip: u64,
-    // reserved 0x180 - 0x1d7
-    reserved_0x180_0x1d7: [u8; 0x1d7 - 0x180],
+    // reserved 0x180 - 0x1bf
+    reserved_0x180_0x1bf: [u8; 0x1bf - 0x180],
+    instr_retired_ctr: u64,
+    perf_ctr_global_sts: u64,
+    perf_ctr_global_ctl: u64,
+    // reserved 0x1d4 - 1d7
+    reserved_0x1d4_0x1d7: [u8; 0x1d7 - 0x1d4],
     rsp: u64,
     s_cet: u64,
     ssp: u64,
@@ -522,12 +578,14 @@ pub struct VmcbStateSaveArea {
     br_from: u64,
     br_to: u64,
     lastexcpfrom: u64,
-    dbgextncfg: u64,
-    // reserved 299h–2dfh
-    reserved_0x299_0x2df: [u8; 0x2df - 0x299],
+    lastexcpto: u64,
+    dbgextnctl: u64,
+    // reserved 2a0h–2dfh
+    reserved_0x2a0_0x2df: [u8; 0x2df - 0x2a0],
     spec_ctrl: u64,
     // reserved 2e8h–66fh
     reserved_0x2e8_0x66f: [u8; 0x66f - 0x2e8],
+    // 670h - 76fh
     lbr_stack: [u8; 256],
     lbr_select: u64,
     ibs_fetch_ctl: u64,
@@ -543,11 +601,11 @@ pub struct VmcbStateSaveArea {
 }
 
 #[repr(C)]
-#[bitsize(64)]
+#[bitsize(128)]
 #[derive(Clone, Copy, PartialEq, FromBits)]
 pub struct VmcbRegister {
     selector: u16,
     attrib: u16,
-    limit: u16,
-    base: u16,
+    limit: u32,
+    base: u64,
 }
