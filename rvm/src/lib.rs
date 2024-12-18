@@ -8,6 +8,7 @@ extern crate log;
 mod error;
 
 mod arch;
+mod debug;
 mod hal;
 mod mm;
 

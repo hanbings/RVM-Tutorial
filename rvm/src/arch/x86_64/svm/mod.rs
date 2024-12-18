@@ -1,16 +1,15 @@
-use core::marker::PhantomData;
-
+use structs::SvmRegion;
 use svm::read_msr;
-use vmcb::{Vmcb, VmcbControlArea, VmcbStateSaveArea};
 use x86::vmx::VmFail;
 
-use crate::mm::PhysFrame;
-use crate::{HostPhysAddr, RvmError, RvmHal, RvmResult};
+use crate::{debug, RvmError, RvmHal, RvmResult};
 
-pub mod debug;
+pub mod structs;
 pub mod svm;
+pub mod vcpu;
 pub mod vmcb;
 
+pub use self::vcpu::SvmVcpu as RvmVcpu;
 pub use self::SvmPreCpuState as ArchPerCpuState;
 
 #[allow(dead_code)]
@@ -23,34 +22,14 @@ pub fn has_hardware_support() -> bool {
 }
 
 pub struct SvmPreCpuState<H: RvmHal> {
-    vmcb: Vmcb,
-    hal: PhantomData<H>,
+    _svm_region: SvmRegion<H>,
 }
 
 impl<H: RvmHal> SvmPreCpuState<H> {
     pub fn new() -> Self {
-        let frame: PhysFrame<H> = PhysFrame::alloc_zero().unwrap();
-        unsafe {
-            let ptr = frame.as_mut_ptr() as *mut u8;
-            let vmcb_ptr = ptr as *mut Vmcb;
-
-            Self {
-                vmcb: *vmcb_ptr,
-                hal: PhantomData,
-            }
+        Self {
+            _svm_region: unsafe { SvmRegion::uninit() },
         }
-    }
-
-    pub fn vmcb(&self) -> &Vmcb {
-        &self.vmcb
-    }
-
-    pub fn vmcb_mut(&mut self) -> &mut Vmcb {
-        &mut self.vmcb
-    }
-
-    pub fn phys_addr(&self) -> HostPhysAddr {
-        self.vmcb() as *const Vmcb as HostPhysAddr
     }
 
     pub fn is_enabled(&self) -> bool {
@@ -83,25 +62,10 @@ impl<H: RvmHal> SvmPreCpuState<H> {
             return rvm_err!(ResourceBusy, "SVM is not enabled in VM_CR register");
         }
 
-        let vmcb_address = self.phys_addr();
-
-        debug!("[RVM] VMCB Size: {:#x}", core::mem::size_of::<Vmcb>());
-        debug!(
-            "[RVM] VMCA Size: {:#x}",
-            core::mem::size_of::<VmcbControlArea>()
-        );
-        debug!(
-            "[RVM] VMAS Size: {:#x}",
-            core::mem::size_of::<VmcbStateSaveArea>()
-        );
-
         // Enable SVM
         unsafe {
             info!("[RVM] Enabling SVM...");
             svm::enable_svm();
-
-            info!("[RVM] Ready to switch to Guest...");
-            svm::vmrun(vmcb_address);
         };
 
         info!("[RVM] successed to turn on SVM.");
