@@ -1,4 +1,3 @@
-use structs::SvmRegion;
 use svm::read_msr;
 use x86::vmx::VmFail;
 
@@ -22,13 +21,13 @@ pub fn has_hardware_support() -> bool {
 }
 
 pub struct SvmPreCpuState<H: RvmHal> {
-    _svm_region: SvmRegion<H>,
+    _phantom: core::marker::PhantomData<H>,
 }
 
 impl<H: RvmHal> SvmPreCpuState<H> {
     pub fn new() -> Self {
         Self {
-            _svm_region: unsafe { SvmRegion::uninit() },
+            _phantom: core::marker::PhantomData,
         }
     }
 

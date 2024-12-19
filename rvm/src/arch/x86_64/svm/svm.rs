@@ -2,14 +2,14 @@ use core::arch::asm;
 
 pub unsafe fn vmload(vmcb_address: usize) {
     asm!(
-        "vmload",
+        "vmload rax",
         in("rax") vmcb_address
     );
 }
 
 pub unsafe fn vmrun(vmcb_address: usize) {
     asm!(
-        "vmrun",
+        "vmrun rax",
         in("rax") vmcb_address
     );
 }
@@ -36,6 +36,15 @@ pub fn read_msr(msr: u32) -> u64 {
 
 pub fn is_enabled_svm() -> bool {
     read_msr(0xC0000080) & 1 << 12 != 0
+}
+
+pub unsafe fn set_vm_hsave_pa_msr(pa: usize) {
+    asm!(
+        "wrmsr",
+        in("ecx") 0xC0010115u32,
+        in("eax") (pa >> 32) as u32,
+        in("edx") pa as u32,
+    );
 }
 
 pub unsafe fn enable_svm() {
