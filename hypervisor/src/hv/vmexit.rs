@@ -1,6 +1,5 @@
 use super::hal::RvmHalImpl;
-use rvm::arch::VmxExitReason;
-use rvm::{RvmResult, RvmVcpu};
+use rvm::{RvmResult, RvmVcpu, SvmExitReason};
 
 type Vcpu = RvmVcpu<RvmHalImpl>;
 
@@ -26,7 +25,7 @@ pub fn vmexit_handler(vcpu: &mut Vcpu) -> RvmResult {
     }
 
     let res = match exit_info.exit_reason {
-        VmxExitReason::VMCALL => handle_hypercall(vcpu),
+        SvmExitReason::VMEXIT_SHUTDOWN => handle_hypercall(vcpu),
         _ => panic!(
             "Unhandled VM-Exit reason {:?}:\n{:#x?}",
             exit_info.exit_reason, vcpu

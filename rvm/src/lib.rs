@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(asm_const)]
 #![feature(concat_idents)]
 #![feature(naked_functions)]
 
@@ -16,6 +15,7 @@ mod mm;
 use arch::ArchPerCpuState;
 
 pub use arch::RvmVcpu;
+pub use arch::{SvmExitInfo, SvmExitReason};
 pub use error::{RvmError, RvmResult};
 pub use hal::RvmHal;
 pub use mm::{GuestPhysAddr, GuestVirtAddr, HostPhysAddr, HostVirtAddr};

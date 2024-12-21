@@ -20,7 +20,7 @@ pub fn run() -> ! {
 
 #[naked]
 unsafe extern "C" fn test_guest() -> ! {
-    core::arch::asm!(
+    core::arch::naked_asm!(
         "
         mov     rax, 0
         mov     rdi, 2
@@ -31,6 +31,6 @@ unsafe extern "C" fn test_guest() -> ! {
         vmcall
         add     rax, 1
         jmp     2b",
-        options(noreturn),
+        options(),
     );
 }

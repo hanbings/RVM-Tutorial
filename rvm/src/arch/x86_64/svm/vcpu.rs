@@ -6,9 +6,11 @@ use x86_64::registers::control::Cr0Flags;
 use crate::arch::msr::Msr;
 use crate::arch::x86_64::svm::svm;
 use crate::arch::x86_64::svm::vmcb::{Vmcb, VmcbControlArea, VmcbStateSaveArea};
+use crate::arch::GeneralRegisters;
 use crate::mm::PhysFrame;
 use crate::{RvmHal, RvmResult};
 
+use super::definitions::SvmExitInfo;
 use super::structs::SvmRegion;
 use super::SvmPreCpuState;
 
@@ -19,7 +21,7 @@ pub struct SvmVcpu<H: RvmHal> {
 }
 
 impl<H: RvmHal> SvmVcpu<H> {
-    pub(crate) fn new(_percpu: &SvmPreCpuState<H>) -> RvmResult<Self> {
+    pub(crate) fn new(_percpu: &SvmPreCpuState<H>, _entry: usize) -> RvmResult<Self> {
         let mut vcpu = Self {
             vmcb: SvmRegion::new()?,
             host_state: PhysFrame::alloc_zero()?,
@@ -30,7 +32,7 @@ impl<H: RvmHal> SvmVcpu<H> {
         Ok(vcpu)
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> ! {
         debug!("[RVM] VMCB Size: {:#x}", core::mem::size_of::<Vmcb>());
         debug!(
             "[RVM] VMCA Size: {:#x}",
@@ -54,6 +56,22 @@ impl<H: RvmHal> SvmVcpu<H> {
             svm::vmload(vmcb_address);
             svm::vmrun(vmcb_address);
         };
+    }
+
+    pub fn exit_info(&self) -> RvmResult<SvmExitInfo> {
+        unimplemented!()
+    }
+
+    pub fn regs(&self) -> &GeneralRegisters {
+        unimplemented!()
+    }
+
+    pub fn regs_mut(&mut self) -> &mut GeneralRegisters {
+        unimplemented!()
+    }
+
+    pub fn advance_rip(&mut self, _instr_len: u8) -> RvmResult<()> {
+        unimplemented!()
     }
 }
 
@@ -109,10 +127,30 @@ impl<H: RvmHal> SvmVcpu<H> {
         vmcb.state_save_area.g_pat = Msr::IA32_PAT.read() as u64;
         vmcb.state_save_area.efer = 0;
     }
+
+    fn vmexit_handler(&mut self) {
+        H::vmexit_handler(self);
+    }
 }
 
 impl<H: RvmHal> Debug for SvmVcpu<H> {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        (|| -> RvmResult<Result> { Ok(f.debug_struct("SvmVcpu").finish()) })().unwrap()
+        (|| -> RvmResult<Result> {
+            let vmcb = self.vmcb.phys_addr() as *mut Vmcb;
+            let vmcb = unsafe { &*vmcb };
+            Ok(f.debug_struct("SvmVcpu")
+                .field("rip", &vmcb.state_save_area.rip)
+                .field("rsp", &vmcb.state_save_area.rsp)
+                .field("rflags", &vmcb.state_save_area.rfalgs)
+                .field("cr0", &vmcb.state_save_area.cr0)
+                .field("cr3", &vmcb.state_save_area.cr3)
+                .field("cr4", &vmcb.state_save_area.cr4)
+                .field("cs", &vmcb.state_save_area.cs.selector())
+                .field("fs_base", &vmcb.state_save_area.fs.base())
+                .field("gs_base", &vmcb.state_save_area.gs.base())
+                .field("tss", &vmcb.state_save_area.tr.selector())
+                .finish())
+        })()
+        .unwrap()
     }
 }

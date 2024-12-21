@@ -7,15 +7,20 @@ pub unsafe fn vmload(vmcb_address: usize) {
     );
 }
 
-pub unsafe fn vmrun(vmcb_address: usize) {
+pub unsafe fn vmrun(vmcb_address: usize) -> ! {
     asm!(
         "vmrun rax",
-        in("rax") vmcb_address
+        in("rax") vmcb_address,
+        options(noreturn)
     );
 }
 
-pub unsafe fn vmexit() {
-    asm!("vmexit");
+pub unsafe fn vmexit() -> ! {
+    asm!("vmexit", options(noreturn))
+}
+
+fn vmx_entry_failed(instruction_error: usize) -> ! {
+    panic!("{}", instruction_error);
 }
 
 pub fn read_msr(msr: u32) -> u64 {

@@ -3,11 +3,14 @@ use x86::vmx::VmFail;
 
 use crate::{debug, RvmError, RvmHal, RvmResult};
 
+pub mod definitions;
 pub mod structs;
 pub mod svm;
 pub mod vcpu;
 pub mod vmcb;
 
+pub use self::definitions::SvmExitInfo;
+pub use self::definitions::SvmExitReason;
 pub use self::vcpu::SvmVcpu as RvmVcpu;
 pub use self::SvmPreCpuState as ArchPerCpuState;
 
