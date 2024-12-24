@@ -25,7 +25,7 @@ pub fn vmexit_handler(vcpu: &mut Vcpu) -> RvmResult {
     }
 
     let res = match exit_info.exit_reason {
-        SvmExitReason::VMEXIT_SHUTDOWN => handle_hypercall(vcpu),
+        SvmExitReason::Vmmcall => handle_hypercall(vcpu),
         _ => panic!(
             "Unhandled VM-Exit reason {:?}:\n{:#x?}",
             exit_info.exit_reason, vcpu

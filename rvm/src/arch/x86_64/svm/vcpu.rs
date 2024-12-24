@@ -16,15 +16,19 @@ use super::SvmPreCpuState;
 
 #[repr(C)]
 pub struct SvmVcpu<H: RvmHal> {
-    vmcb: SvmRegion<H>,
+    guest_regs: GeneralRegisters,
+    host_stack_top: u64,
     host_state: PhysFrame<H>,
+    vmcb: SvmRegion<H>,
 }
 
 impl<H: RvmHal> SvmVcpu<H> {
     pub(crate) fn new(_percpu: &SvmPreCpuState<H>, _entry: usize) -> RvmResult<Self> {
         let mut vcpu = Self {
-            vmcb: SvmRegion::new()?,
+            guest_regs: GeneralRegisters::default(),
+            host_stack_top: 0,
             host_state: PhysFrame::alloc_zero()?,
+            vmcb: SvmRegion::new()?,
         };
 
         vcpu.setup_vmcb();
